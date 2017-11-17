@@ -1,0 +1,413 @@
+" Lays <poca0725@gmail.com>
+
+set nocompatible               " be iMproved
+
+"==============================================================
+">  Vundle
+"==============================================================
+
+" Check if vundle installed
+if !filereadable(expand('~/.vim/bundle/Vundle.vim/README.md'))
+    echo "Vundle not installed!"
+    if confirm("Install Vundle now?", "&Yes\n&No", 1)==1
+        silent !git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+        silent !vim +PluginInstall +qall
+        echo "Vundle Installed"
+        silent !vim
+        exit
+    endif
+else
+    " Init vundle
+    filetype off                   " required!
+
+    set rtp+=~/.vim/bundle/Vundle.vim
+    call vundle#begin()
+
+    Plugin 'gmarik/Vundle.vim'
+
+    " --- Plugins ---
+    Plugin 'L9'             "L9 is required by AutoComplPop
+    Plugin 'othree/vim-autocomplpop'
+    Plugin 'ctrlpvim/ctrlp.vim'
+    Plugin 'majutsushi/tagbar'
+    Plugin 'SirVer/ultisnips'
+    Plugin 'honza/vim-snippets'
+    Plugin 'vim-airline/vim-airline'
+    Plugin 'vim-airline/vim-airline-themes'
+    Plugin 'L4ys/molokai'
+    Plugin 'vectorstorm/vim-csyn'
+    Plugin 'tpope/vim-surround'
+    if has("mac") || has("macunix")
+        Plugin 'msanders/cocoa.vim'
+    endif
+
+    call vundle#end()
+    filetype plugin indent on      " required!
+endif
+
+"==============================================================
+">  General
+"==============================================================
+
+" Sets how many lines of history VIM has to remember
+set history=200
+
+" Enable filetype plugins
+filetype plugin on
+filetype indent on
+
+" Set to auto read when a file is changed from the outside
+set autoread
+
+" Set leader key to ','
+let mapleader = ","
+
+" Set utf8 as standard encoding
+let $LANG="en_US.utf-8"
+set encoding=utf-8
+set fileencodings=usc-bom,utf-8,big5,taiwan,chinese,default,latin1
+
+" Turn off expand tab in makefile
+autocmd FileType make setlocal noexpandtab
+
+" Indent 2 for html / css
+autocmd BufNewFile,BufRead *.html,*.htm,*.css setlocal noexpandtab tabstop=2 shiftwidth=2  
+
+"==============================================================
+">  VIM user interface
+"==============================================================
+" Set 7 lines to the cursor - when moving vertically using j/k
+set so=7
+
+" Turn on the WiLd menu
+set wildmenu
+
+" Ignore compiled files
+set wildignore=*.o,*~,*.pyc,*.class,*.obj
+
+" Always show current position
+set ruler
+
+" Height of the command bar
+set cmdheight=1
+
+" A buffer becomes hidden when it is abandoned
+set hid
+
+" Configure backspace so it acts as it should act
+set backspace=eol,start,indent
+set whichwrap+=<,>,h,l
+
+" Ignore case when searching
+set ignorecase
+
+" When searching try to be smart about cases
+set smartcase
+
+" Highlight search results
+set hlsearch
+
+" Makes search act like search in modern browsers
+set incsearch
+
+" Don't redraw while executing macros (good performance config)
+set lazyredraw
+
+" u got a fast terminal
+set ttyfast
+
+" Prevent long line lag
+set synmaxcol=512
+
+" For regular expressions turn magic on
+set magic
+
+" Show matching brackets when text indicator is over them
+set showmatch
+
+" How many tenths of a second to blink when matching brackets
+set mat=2
+
+" No annoying sound on errors
+set noerrorbells
+set novisualbell
+set t_vb=
+set tm=500
+
+" Always show the status line
+set laststatus=2
+
+" hold shift to select and copy text
+set mouse=a
+
+"==============================================================
+">  Colors and Fonts
+"==============================================================
+
+" Enable syntax highlighting
+syntax enable
+
+set shortmess=atI      " remove start screen
+set background=dark
+set number
+set cursorline
+
+set t_Co=256
+let g:rehash256 = 1
+
+if filereadable(expand('~/.vim/bundle/molokai/colors/molokai.vim'))
+    let g:molokai_original = 1
+    colorscheme molokai
+endif
+
+"==============================================================
+">  Files, backups and undo
+"==============================================================
+
+" Turn backup off, since most stuff is in SVN, git et.c anyway...
+set nobackup
+set nowb
+set noswapfile
+set noundofile
+
+"==============================================================
+">  Text, tab and indent related
+"==============================================================
+
+" Use spaces instead of tabs
+set expandtab
+
+" Be smart when using tabs ;)
+set smarttab
+
+" 1 tab == 4 spaces
+set shiftwidth=4
+set tabstop=4
+
+" Linebreak on 500 characters
+set lbr
+set tw=500
+
+set ai   " Auto indent
+set si   " Smart indent
+set wrap " Wrap lines
+
+" Remove preview window
+set completeopt-=preview
+
+" Auto save and load fold setting
+au BufWinLeave *.* silent mkview
+au BufWinEnter *.* silent loadview
+
+" Hightlight from start of file
+au BufEnter * :syntax sync fromstart
+
+"==============================================================
+">  Visual mode related
+"==============================================================
+
+" Visual mode pressing * or # searches for the current selection
+" Super useful! From an idea by Michael Naumann
+vnoremap <silent> * :call VisualSelection('f')<CR>
+vnoremap <silent> # :call VisualSelection('b')<CR>
+
+"==============================================================
+">  Moving around, tabs, windows and buffers
+"==============================================================
+" Treat long lines as break lines (useful when moving around in them)
+map j gj
+map k gk
+
+" Disable highlight when <leader><cr> is pressed
+map <leader><CR> :noh<CR>
+
+" Open a newtab with file
+noremap <leader>t :tabedit <C-R>=expand("%:p:h")<CR>
+
+" Switch to next tab
+noremap <leader><leader> :tabnext<CR>
+" Switch to previous tab
+noremap <leader>. :tabprevious<CR>
+
+" Switch between tabs
+for i in range(1, 9)
+    exec 'nmap <leader>'.i.' '.i.'gt<CR>'
+endfor
+
+" Return to last edit position when opening files (You want this!)
+autocmd BufReadPost *
+     \ if line("'\"") > 0 && line("'\"") <= line("$") |
+     \   exe "normal! g`\"" |
+     \ endif
+
+" Remember info about open buffers on close
+set viminfo^=%
+
+"==============================================================
+">  Editing mappings
+"==============================================================
+
+" Remap VIM 0 to first non-blank character
+map 0 ^
+
+" Delete trailing white space on save, useful for Python and CoffeeScript ;)
+func! DeleteTrailingWS()
+  exe "normal mz"
+  %s/\s\+$//ge
+  exe "normal `z"
+endfunc
+
+"autocmd BufWrite *.py,*.coffee,*.js,*.html,*.c,*.cpp,*.xm :call DeleteTrailingWS()
+
+"==============================================================
+">  Misc
+"==============================================================
+" Remove the Windows ^M - when the encodings gets messed up
+noremap <Leader>m mmHmt:%s/<C-V><cr>//ge<cr>'tzt'm
+noremap <Leader>M :%s/\r/\r/g<CR>
+
+"==============================================================
+">  Helper functions
+"==============================================================
+function! CmdLine(str)
+    exe "menu Foo.Bar :" . a:str
+    emenu Foo.Bar
+    unmenu Foo
+endfunction
+
+function! VisualSelection(direction) range
+    let l:saved_reg = @"
+    execute "normal! vgvy"
+
+    let l:pattern = escape(@", '\\/.*$^~[]')
+    let l:pattern = substitute(l:pattern, "\n$", "", "")
+
+    if a:direction == 'b'
+        execute "normal ?" . l:pattern . "^M"
+    elseif a:direction == 'gv'
+        call CmdLine("vimgrep " . '/'. l:pattern . '/' . ' **/*.')
+    elseif a:direction == 'replace'
+        call CmdLine("%s" . '/'. l:pattern . '/')
+    elseif a:direction == 'f'
+        execute "normal /" . l:pattern . "^M"
+    endif
+
+    let @/ = l:pattern
+    let @" = l:saved_reg
+endfunction
+
+let $in_hex=0
+function! ToggleHex()
+    "set binary
+    "set noeol
+    if $in_hex>0
+        :%!xxd -r
+        let $in_hex=0
+    else
+        :%!xxd
+        let $in_hex=1
+    endif
+endfunction
+
+"==============================================================
+">  Other
+"==============================================================
+
+" Auto reload vimrc when editing it
+autocmd! bufwritepost .vimrc source ~/.vimrc
+
+" Allow saving of files as sudo when I forgot to start vim using sudo.
+cmap w!! w !sudo tee > /dev/null %
+
+" Copy to system clipboard by Ctrl-C
+if has("mac") || has("macunix")
+    vmap <silent><C-c> :w !pbcopy<CR><CR>
+    noremap <silent><leader>c :w !pbcopy<CR><CR>
+endif
+
+" Daily routines
+noremap <leader>z :w<CR><C-Z>
+noremap <leader>w :w<CR>
+noremap <leader>x :x<CR>
+noremap <leader>q :q!<CR>
+
+noremap <leader>e :edit <C-R>=expand("%:p:h")<CR>/
+
+" Split with file
+noremap <leader>s :split <C-R>=expand("%:p:h")<CR>/
+noremap <leader>v :vsplit <C-R>=expand("%:p:h")<CR>/
+
+" Redraw, useful in terminal when screen getr messed up
+nnoremap <leader>rr :redraw!<CR>
+
+" <F2> toggles paste mode
+set pastetoggle=<F2>
+
+" <F3> toggles line number
+noremap <silent> <F3> :set nu!<CR>
+imap <silent><F3> <C-O><F3>
+
+" <F4> toggles line wrap
+noremap <silent> <F4> :set wrap!<CR>
+imap <silent><F4> <C-O><F4>
+
+" <F5> toggles hex edit
+noremap <silent> <F5> :call ToggleHex()<CR>
+imap <silent><F5> <C-O><F5>
+
+" <F6> syntax sync
+noremap <F6> <Esc>:syntax sync fromstart<CR>
+imap <silent><F6> <C-O><F6>
+
+" <F7> spelling check
+noremap <silent> <F7> :set spell!<CR>
+imap <silent><F7> <C-O><F7>
+
+" <F10> toggles foldenable
+noremap <silent> <F10> :set foldenable!<CR>
+imap <silent> <F10> <C-O><F10>
+
+" <F12> toggles tagbar
+noremap <silent> <F12> :TagbarToggle<CR>
+imap <silent> <F12> <C-O><F12>
+
+"==============================================================
+"> Plugins
+"==============================================================
+
+" ctrlp
+let g:ctrlp_custom_ignore = { 
+    \ 'dir': '\.git$\|\.hg$:|\.svn$\|\.yardoc\|public\/images\|public\/system\|data\|log\|tmp$',
+    \ 'file': '\.exe$\|\.so$\|\.dat$'
+    \ }
+let g:ctrlp_show_hidden = 1
+let g:ctrlp_cmd = 'CtrlPMRU'
+
+" leader + b to open buffer list with ctrlp
+nmap <leader>b :CtrlPBuffer<CR>
+
+" airline
+set ttimeoutlen=50
+set noshowmode
+
+if !exists('g:airline_symbols')
+    let g:airline_symbols = {}
+endif
+
+let g:airline_theme = 'powerlineish'
+let g:airline_powerline_fonts = 0
+let g:airline_left_sep = ''
+let g:airline_left_alt_sep = ''
+let g:airline_right_sep = ''
+let g:airline_right_alt_sep = ''
+let g:airline_symbols.linenr = '¶'
+let g:airline_symbols.branch = '⎇'
+let g:airline#extensions#branch#enabled = 1
+let g:airline#extensions#branch#empty_message = ''
+let g:airline#extensions#whitespace#enabled = 0 
+
+" UltiSnips
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<c-b>"
+let g:UltiSnipsJumpBackwardTrigger="<c-z>"
+

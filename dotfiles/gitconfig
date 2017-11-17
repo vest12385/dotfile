@@ -1,0 +1,17 @@
+[user]
+    name = Lays
+    email = poca0725@gmail.com
+[color]
+    ui = true
+[alias]
+    lg = log --color --graph --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --
+    st = status
+    co = checkout
+    ci = commit
+    br = branch
+[merge]
+    tool = vimdiff
+[core]
+    editor = vim
+[push]
+    default = current
