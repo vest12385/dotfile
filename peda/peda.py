@@ -43,7 +43,7 @@ from utils import *
 import config
 from nasm import *
 
-if sys.version_info.major == 3:
+if sys.version_info.major is 3:
     from urllib.request import urlopen
     from urllib.parse import urlencode
     pyversion = 3
@@ -443,10 +443,10 @@ class PEDA(object):
         if self.is_target_remote(): # remote target
             ctx = config.Option.get("context")
             config.Option.set("context", None)
-            try:
-                out = self.execute_redirect("call getpid()")
-            except:
-                pass
+            #try:
+                #out = self.execute_redirect("call getpid()")
+            #except:
+            #    pass
 
             config.Option.set("context", ctx)
 
@@ -2702,6 +2702,7 @@ class PEDA(object):
         def _getgotplt(arch):
             gotplt = []
             procname = self.getfile()
+            remove_start = False
             if "arm" in arch :
                 result = subprocess.check_output("objdump -R " + procname +
                     "|grep R_ARM_JUMP_SLOT",shell=True )
@@ -2712,9 +2713,17 @@ class PEDA(object):
                 result = subprocess.check_output("objdump -R " + procname +
                     "|grep R_X86_64_GLOB_DAT",shell=True )
             result = result.decode('utf8')
+            try :
+                temp = subprocess.check_output("objdump -d " + procname + "| grep call.*GLOBAL_OFFSET_TABLE",shell=True).decode('utf8')
+                if len(temp) > 0 :
+                    remove_start = True
+            except :
+                pass
             for element in result.split('\n')[:-1]:
                 data = element.split()[2]
                 if "stdout" in data or "registerTMCloneTable" in data or "RegisterClasse" in data or "stdin" in data:
+                    continue
+                if ("__libc_start_main" in data or "__gmon_start__" in data) and remove_start  :
                     continue
                 if "@GLIBC_2.0" in data :
                     data = data.strip("@GLIBC_2.0")
@@ -2753,11 +2762,18 @@ class PEDA(object):
                 return symbols
             else :
                 got_plt = _getgotplt(arch)
+
                 result = subprocess.check_output("objdump -d -j .plt.got " + procname +
-                    "| grep -A 31337 .plt.got\>",shell=True).decode('utf8')
-                pltentry = result.split("\n")[1:]
-                for i in range(int(len(pltentry)/2)):
-                    temp.append(int(pltentry[i*2].split(":")[0].strip(),16) )
+                    "| grep -A 31337 .plt.got",shell=True).decode('utf8')
+                pltentry = result.split("\n")[2:]
+                # objdump < 2.29
+                if not '' in pltentry:
+                    for i in range(int(len(pltentry)/2)):
+                        temp.append(int(pltentry[i*2].split(":")[0].strip(),16) )
+                # objdump >= 2.29
+                else:
+                    for i in range(int(len(pltentry)/4)):
+                        temp.append(int(pltentry[i*4 + 1].split(":")[0].strip(),16) )
                 symbols = dict(zip(got_plt,temp))
                 for (k,v) in symbols.items():
                     if v < elfbase :
@@ -4408,7 +4424,7 @@ class PEDACmd(object):
                     text += blue(content,"light") + " = " + hex(value) + ","
                     chain = peda.examine_mem_reference(value)
                     text2 += "%s : %s\n" % (green(content,"light"),format_reference_chain(chain))
-            if text[-1] != '(':
+            if text[-1] is not '(':
                 text = text[:-1] + yellow(")","light")
                 msg(yellow(text,"light"))
                 msg(text2.strip())
@@ -4446,7 +4462,7 @@ class PEDACmd(object):
         """
         syscall = {}
         syscalltab = {}
-        regslist = ["rdi","rsi","rdx","rcx","r8","r9"]
+        regslist = ["rdi","rsi","rdx","r10","r8","r9"]
         with open( os.path.dirname(PEDAFILE)+ '/data/x64syscall.csv',"r") as f:
             for row in csv.DictReader(f):
                 tmp = {}
@@ -4457,8 +4473,8 @@ class PEDACmd(object):
                     tmp['rsi'] = row['rsi']
                 if len(row['rdx']) > 0 :
                     tmp['rdx'] = row['rdx']
-                if len(row['rcx']) > 0 :
-                    tmp['rcx'] = row['rcx']
+                if len(row['r10']) > 0 :
+                    tmp['r10'] = row['r10']
                 if len(row['r8']) > 0 :
                     tmp['r8'] = row['r8']
                 if len(row['r9']) > 0 :
@@ -4481,7 +4497,7 @@ class PEDACmd(object):
                     text += blue(content,"light") + " = " + hex(value) + ","
                     chain = peda.examine_mem_reference(value)
                     text2 += "%s : %s\n" % (green(content,"light"),format_reference_chain(chain))
-            if text[-1] != '(':
+            if text[-1] is not '(':
                 text = text[:-1] + yellow(")","light")
                 msg(yellow(text,"light"))
                 msg(text2.strip())
@@ -5187,8 +5203,7 @@ class PEDACmd(object):
         try :
             if not hasattr(self,"source") or not hasattr(self,"filename") or filename != self.filename:
                 with open(filename) as source_file :
-                    self.source = source_file.read()
-                    self.source_lines = self.source.splitlines()
+                    self.source_lines = source_file.readlines()
                 self.filename = filename
         except Exception as e :
         #    msg("Cannot display %s" % filename)
@@ -6844,9 +6859,9 @@ class PEDACmd(object):
                 while True:
                     for os in oslist:
                         msg('%s %s'%(yellow('[+]'),green(os)))
-                    if pyversion == 2:
+                    if pyversion is 2:
                         os = input('%s'%blue('os:'))
-                    if pyversion == 3:
+                    if pyversion is 3:
                         os = input('%s'%blue('os:'))
                     if os in oslist: #check if os exist 
                         break
@@ -6855,9 +6870,9 @@ class PEDACmd(object):
                 while True:
                     for job in joblist:
                         msg('%s %s'%(yellow('[+]'),green(job)))
-                    if pyversion == 2:
+                    if pyversion is 2:
                         job = raw_input('%s'%blue('job:'))
-                    if pyversion == 3:
+                    if pyversion is 3:
                         job = input('%s'%blue('job:'))
                     if job != '':
                         break
@@ -6866,9 +6881,9 @@ class PEDACmd(object):
                 while True:
                     for encode in encodelist:
                         msg('%s %s'%(yellow('[+]'),green(encode)))
-                    if pyversion == 2:
+                    if pyversion is 2:
                         encode = raw_input('%s'%blue('encode:'))
-                    if pyversion == 3:
+                    if pyversion is 3:
                         encode = input('%s'%blue('encode:'))
                     if encode != '':
                         break
