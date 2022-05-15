@@ -103,7 +103,6 @@ export TERM=screen-256color
 export PIN_ROOT="$HOME/bin/pin"
 
 alias gdb="gdb -q"
-alias pwndbg="gdb -x ~/pwndbg/gdbinit.py"
 alias tmux="tmux -2"
 alias rip="curl orange.tw"
 alias tip="curl --socks5 127.0.0.1:9150 orange.tw"
